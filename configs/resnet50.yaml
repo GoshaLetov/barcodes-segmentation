@@ -1,0 +1,52 @@
+experiment_name: 'resnet50'
+
+model:
+  monitor_metric: 'valid.IoU'
+  monitor_mode: 'max'
+  n_epochs: 30
+  accelerator: 'gpu'
+  device: 0
+
+data:
+  num_workers: 4
+  train_fraction: 0.8
+  train_batch_size: 8
+  valid_batch_size: 16
+  width: 512
+  height: 512
+  augmentations:
+    - name: 'HorizontalFlip'
+      kwargs:
+        p: 0.5
+    - name: 'VerticalFlip'
+      kwargs:
+        p: 0.5
+    - name: 'HueSaturationValue'
+      kwargs:
+        p: 0.5
+        hue_shift_limit: 20
+        sat_shift_limit: 30
+        val_shift_limit: 20
+    - name: 'RandomBrightnessContrast'
+      kwargs:
+        p: 0.5
+        brightness_limit: 0.2
+        contrast_limit: 0.2
+    - name: 'ShiftScaleRotate'
+      kwargs: {}
+    - name: 'GaussianBlur'
+      kwargs: {}
+
+loss:
+  name: 'segmentation_models_pytorch.losses.DiceLoss'
+  weight: 1.
+  kwargs: {mode: 'binary', from_logits: true}
+
+optimizer:
+  name: 'torch.optim.AdamW'
+  lr: 1e-1
+  kwargs: {weight_decay: 1e-3}
+
+scheduler:
+  name: 'torch.optim.lr_scheduler.CosineAnnealingLR'
+  kwargs: {T_max: 30, eta_min: 1e-5}
